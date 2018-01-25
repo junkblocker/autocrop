@@ -63,23 +63,27 @@ def four_point_transform(image, pts):
 def cont(img, gray, user_thresh, crop, filename):
     found = False
     cwd = os.getcwd() + '/crop/'
+    orig_thresh = user_thresh
     im_h, im_w = img.shape[:2]
-
     while found == False: # repeat to find the right threshold value for finding a rectangle
+		  if user_thresh < 200:
+		      user_thresh = orig_thresh + 10	  
 		  ret,thresh = cv2.threshold(gray,user_thresh,255,cv2.THRESH_BINARY)
-
+		  
 		  _,contours,hierarchy = cv2.findContours(thresh, 1, cv2.CHAIN_APPROX_SIMPLE)
 		  im_area = im_w * im_h
+		  print(user_thresh)
 
 		  for cnt in contours:
 
 		      area = cv2.contourArea(cnt)
-						 
-		      if area > (im_area/6) and area < (im_area/1.2):
+		 
+		      if area > (im_area/6) and area < (im_area/1.01):
 		          epsilon = 0.1*cv2.arcLength(cnt,True)
 		          approx = cv2.approxPolyDP(cnt,epsilon,True)
 		          if len(approx) == 4:
 		              found = True
+		              
 		          else:
 		              user_thresh = user_thresh - 1	
 		              break                
