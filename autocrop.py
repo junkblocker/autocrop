@@ -67,23 +67,19 @@ def cont(img, gray, user_thresh, crop, filename):
     im_h, im_w = img.shape[:2]
     while found == False: # repeat to find the right threshold value for finding a rectangle
 		  if user_thresh < 200:
-		      user_thresh = orig_thresh + 10	  
+		      user_thresh = orig_thresh + 5
+		      orig_thresh = user_thresh	  
+		      print(user_thresh)
 		  ret,thresh = cv2.threshold(gray,user_thresh,255,cv2.THRESH_BINARY)
-		  
-		  _,contours,hierarchy = cv2.findContours(thresh, 1, cv2.CHAIN_APPROX_SIMPLE)
+		  _,contours,hierarchy = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 		  im_area = im_w * im_h
-		  print(user_thresh)
-
-		  for cnt in contours:
-
+		  for cnt in contours:   		      
 		      area = cv2.contourArea(cnt)
-		 
 		      if area > (im_area/6) and area < (im_area/1.01):
 		          epsilon = 0.1*cv2.arcLength(cnt,True)
 		          approx = cv2.approxPolyDP(cnt,epsilon,True)
 		          if len(approx) == 4:
 		              found = True
-		              
 		          else:
 		              user_thresh = user_thresh - 1	
 		              break                
@@ -99,7 +95,7 @@ def cont(img, gray, user_thresh, crop, filename):
 		          dst_h, dst_w = img.shape[:2]
 		          print("Saveing to "+cwd+"crop_"+filename)
 		          cv2.imwrite(cwd+"crop_"+filename, img, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-		          res = cv2.resize(img,(dst_w/6, dst_h/6), interpolation = cv2.INTER_CUBIC)
+		          #res = cv2.resize(img,(dst_w/6, dst_h/6), interpolation = cv2.INTER_CUBIC)
           
     return found, im_w, im_h
 
@@ -108,9 +104,8 @@ def main(thresh, crop, filename):
     print("Opening: "+filename)
 
     #add white background (in case one side is cropped right already, otherwise script would fail finding contours)
-    img = cv2.copyMakeBorder(img,10,10,10,10, cv2.BORDER_CONSTANT,value=[255,255,255])
+    img = cv2.copyMakeBorder(img,100,100,100,100, cv2.BORDER_CONSTANT,value=[255,255,255])
     im_h, im_w = img.shape[:2]
-
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     res_gray = cv2.resize(img,(im_w/6, im_h/6), interpolation = cv2.INTER_CUBIC)
     found, im_w, im_h = cont(img, gray, thresh, crop, filename)
